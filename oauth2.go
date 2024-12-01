@@ -409,7 +409,7 @@ func HandleNewGithubRegister(resp http.ResponseWriter, request *http.Request) {
 	//GET /repos/{owner}/{repo}/contributors
 	repositories := map[string]string{
 		"frikky/shuffle":           "core",
-		"frikky/shuffle-shared":    "core",
+		"mortezamirkar/shuffle-shared":    "core",
 		"shuffle/shuffle-docs":     "docs",
 		"shuffle/shuffle-apps":     "apps",
 		"shuffle/openapi-apps":     "apps",
