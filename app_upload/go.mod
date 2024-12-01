@@ -4,7 +4,7 @@ go 1.22.0
 
 toolchain go1.22.2
 
-replace github.com/mortezamirkar/shuffle-shared => ../
+// replace github.com/mortezamirkar/shuffle-shared => ../
 
 require (
 	cloud.google.com/go/storage v1.36.0
