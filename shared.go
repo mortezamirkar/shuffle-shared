@@ -3307,7 +3307,7 @@ func HandleGetEnvironments(resp http.ResponseWriter, request *http.Request) {
 				// Check if timestamp is within the last 60 seconds. If it is, overwrite newEnvironments
 				if newEnv.Timestamp > 0 && timenow-newEnv.Timestamp > 60 {
 					newEnvironments[envIndex].RunningIp = ""
-					newEnvironments[envIndex].Licensed = false
+					newEnvironments[envIndex].Licensed = true
 					newEnvironments[envIndex].DataLake.Enabled = false
 				} else {
 					newEnvironments[envIndex].DataLake = newEnv.DataLake
@@ -3317,7 +3317,7 @@ func HandleGetEnvironments(resp http.ResponseWriter, request *http.Request) {
 			}
 		} else {
 			newEnvironments[envIndex].RunningIp = ""
-			newEnvironments[envIndex].Licensed = false
+			newEnvironments[envIndex].Licensed = true
 			newEnvironments[envIndex].DataLake.Enabled = false
 		}
 	}
@@ -5674,19 +5674,19 @@ func SetNewWorkflow(resp http.ResponseWriter, request *http.Request) {
 							AppVersion:  app.AppVersion,
 							AppID:       app.ID,
 							LargeImage:  app.LargeImage,
-						}
-
-						newAction.Position = Position{
-							X: 449.5,
-							Y: 446,
-						}
-
-						newActions = append(newActions, newAction)
 					}
 
-				} else {
-					// figure out a way to activate Shuffle-Tools-Fork for everyone onprem
+					newAction.Position = Position{
+						X: 449.5,
+						Y: 446,
+					}
+
+					newActions = append(newActions, newAction)
 				}
+
+			} else {
+				// figure out a way to activate Shuffle-Tools-Fork for everyone onprem
+			}
 
 			} else {
 				for _, item := range workflowapps {
@@ -7512,8 +7512,8 @@ func SaveWorkflow(resp http.ResponseWriter, request *http.Request) {
 				}
 
 				if !handled {
-					action.Errors = []string{fmt.Sprintf("Couldn't find app %s:%s", action.AppName, action.AppVersion)}
 					action.IsValid = false
+					action.Errors = []string{fmt.Sprintf("Couldn't find app %s:%s", action.AppName, action.AppVersion)}
 				}
 			}
 		}
@@ -8009,7 +8009,7 @@ func SaveWorkflow(resp http.ResponseWriter, request *http.Request) {
 			if !authFound {
 				log.Printf("[WARNING] App auth %s doesn't exist. Setting error", action.AuthenticationId)
 
-				errorMsg := fmt.Sprintf("Authentication for action '%s' in app '%s' doesn't exist!", action.Label, strings.ToLower(strings.ReplaceAll(action.AppName, "_", " ")))
+				errorMsg := fmt.Sprintf("Selected app Authentication for app %s doesn't exist!", strings.ToLower(strings.ReplaceAll(action.AppName, "_", " ")))
 				if !ArrayContains(workflow.Errors, errorMsg) {
 					workflow.Errors = append(workflow.Errors, errorMsg)
 				}
@@ -8186,6 +8186,7 @@ func SaveWorkflow(resp http.ResponseWriter, request *http.Request) {
 
 					if authRequired && fieldsFilled > 1 {
 						foundErr := fmt.Sprintf("Action %s (%s) requires authentication", action.Label, strings.ToLower(strings.Replace(action.AppName, "_", " ", -1)))
+
 						if !ArrayContains(workflow.Errors, foundErr) {
 							log.Printf("\n\n[DEBUG] Adding auth error 1: %s\n\n", foundErr)
 							workflow.Errors = append(workflow.Errors, foundErr)
@@ -8193,7 +8194,6 @@ func SaveWorkflow(resp http.ResponseWriter, request *http.Request) {
 
 						if !ArrayContains(action.Errors, foundErr) {
 							action.Errors = append(action.Errors, foundErr)
-							action.IsValid = false
 						}
 					} else if authRequired && fieldsFilled == 1 {
 						foundErr := fmt.Sprintf("Action %s (%s) requires authentication", action.Label, strings.ToLower(strings.Replace(action.AppName, "_", " ", -1)))
@@ -8206,7 +8206,6 @@ func SaveWorkflow(resp http.ResponseWriter, request *http.Request) {
 
 						if !ArrayContains(action.Errors, foundErr) {
 							action.Errors = append(action.Errors, foundErr)
-							action.IsValid = false
 						}
 					}
 				}
@@ -8280,7 +8279,6 @@ func SaveWorkflow(resp http.ResponseWriter, request *http.Request) {
 
 							if !ArrayContains(action.Errors, thisError) {
 								action.Errors = append(action.Errors, thisError)
-								action.IsValid = false
 							}
 
 							// Updates an existing version of the same one for each missing param
@@ -17888,6 +17886,7 @@ func PrepareSingleAction(ctx context.Context, user User, fileId string, body []b
 		}
 	}
 
+
 	if runValidationAction {
 		log.Printf("[INFO] Running validation action for %s for org %s (%s)", app.Name, user.ActiveOrg.Name, user.ActiveOrg.Id)
 
@@ -24546,8 +24545,10 @@ func GetExternalClient(baseUrl string) *http.Client {
 		}
 	}
 
-	if (len(httpProxy) > 0 || len(httpsProxy) > 0) && (strings.ToLower(httpProxy) != "noproxy" || strings.ToLower(httpsProxy) != "noproxy") {
-		if len(httpProxy) > 0 && strings.ToLower(httpProxy) != "noproxy" {
+	// Normal proxying?
+	if (len(httpProxy) > 0 || len(httpsProxy) > 0) && baseUrl != "http://shuffle-backend:5001" {
+		//client = &http.Client{}
+		if len(httpProxy) > 0 && httpProxy != "noproxy" {
 			log.Printf("[INFO] Running with HTTP proxy %s (env: HTTP_PROXY)", httpProxy)
 
 			url_i := url.URL{}
@@ -24556,8 +24557,27 @@ func GetExternalClient(baseUrl string) *http.Client {
 				transport.Proxy = http.ProxyURL(url_proxy)
 			}
 		}
+		if len(httpsProxy) > 0 && httpsProxy != "noproxy" {
+			log.Printf("[INFO] Running with HTTPS proxy %s (env: HTTPS_PROXY)", httpsProxy)
 
-		if len(httpsProxy) > 0 && strings.ToLower(httpsProxy) != "noproxy" {
+			url_i := url.URL{}
+			url_proxy, err := url_i.Parse(httpsProxy)
+			if err == nil {
+				transport.Proxy = http.ProxyURL(url_proxy)
+			}
+		}
+	} else {
+		// keeping this here for now
+		if len(httpProxy) > 0 && httpProxy != "noproxy" {
+			log.Printf("[INFO] Running with HTTP proxy %s (env: HTTP_PROXY)", httpProxy)
+
+			url_i := url.URL{}
+			url_proxy, err := url_i.Parse(httpProxy)
+			if err == nil {
+				transport.Proxy = http.ProxyURL(url_proxy)
+			}
+		}
+		if len(httpsProxy) > 0 && httpsProxy != "noproxy" {
 			log.Printf("[INFO] Running with HTTPS proxy %s (env: HTTPS_PROXY)", httpsProxy)
 
 			url_i := url.URL{}
@@ -28542,7 +28562,7 @@ func IsLicensed(ctx context.Context, org Org) bool {
 	}
 
 	if len(org.SubscriptionUserId) == 0 {
-		return false
+		return true
 	}
 
 	//if len(org.Subscriptions) > 0 {
@@ -28565,7 +28585,7 @@ func IsLicensed(ctx context.Context, org Org) bool {
 		}
 	}
 
-	return false
+	return true
 }
 
 // Generates a standard destination workflow that uses:
@@ -28871,6 +28891,8 @@ func HandleExecutionCacheIncrement(ctx context.Context, execution WorkflowExecut
 		IncrementCache(ctx, execution.ExecutionOrg, fmt.Sprintf("categorylabel_fail_%s", key), value)
 	}
 }
+
+// FIXME: Always fails:
 
 func GetChildWorkflows(resp http.ResponseWriter, request *http.Request) {
 	cors := HandleCors(resp, request)
@@ -29858,32 +29880,4 @@ func SendDeleteWorkflowRequest(childWorkflow Workflow, request *http.Request) er
 	log.Printf("[INFO] Deleted child workflow %s. Resp: %s", childWorkflow.ID, string(resp.Status))
 
 	return nil
-}
-
-func NewTimeWindow(duration time.Duration) *TimeWindow {
-	return &TimeWindow{
-		Duration: duration,
-		Events:   []time.Time{},
-	}
-}
-
-func (tw *TimeWindow) AddEvent(event time.Time) {
-	tw.mu.Lock()
-	defer tw.mu.Unlock()
-	tw.Events = append(tw.Events, event)
-	tw.cleanOldEvents(event)
-}
-
-func (tw *TimeWindow) CountEvents(now time.Time) int {
-	tw.mu.Lock()
-	defer tw.mu.Unlock()
-	tw.cleanOldEvents(now)
-	return len(tw.Events)
-}
-
-func (tw *TimeWindow) cleanOldEvents(now time.Time) {
-	cutoff := now.Add(-tw.Duration)
-	for len(tw.Events) > 0 && tw.Events[0].Before(cutoff) {
-		tw.Events = tw.Events[1:]
-	}
 }

@@ -5,7 +5,7 @@ package main
 // This can be used to update normal apps, but app-creator apps should be updated by the shaffuru/functions/cloud_scripts/update_functions.go script in case there is a new App SDK.
 
 import (
-	"github.com/shuffle/shuffle-shared"
+	"github.com/mortezamirkar/shuffle-shared"
 
 	"archive/zip"
 	"bytes"
