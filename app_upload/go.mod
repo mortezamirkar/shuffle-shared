@@ -9,7 +9,7 @@ replace github.com/mortezamirkar/shuffle-shared => ../
 require (
 	cloud.google.com/go/storage v1.36.0
 	github.com/docker/docker v25.0.6+incompatible
-	github.com/mortezamirkar/shuffle-shared v0.3.60
+	github.com/mortezamirkar/shuffle-shared v0.6.50
 	google.golang.org/api v0.155.0
 	gopkg.in/yaml.v2 v2.4.0
 )
