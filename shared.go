@@ -3307,7 +3307,7 @@ func HandleGetEnvironments(resp http.ResponseWriter, request *http.Request) {
 				// Check if timestamp is within the last 60 seconds. If it is, overwrite newEnvironments
 				if newEnv.Timestamp > 0 && timenow-newEnv.Timestamp > 60 {
 					newEnvironments[envIndex].RunningIp = ""
-					newEnvironments[envIndex].Licensed = true
+					newEnvironments[envIndex].Licensed = false
 					newEnvironments[envIndex].DataLake.Enabled = false
 				} else {
 					newEnvironments[envIndex].DataLake = newEnv.DataLake
@@ -3317,8 +3317,8 @@ func HandleGetEnvironments(resp http.ResponseWriter, request *http.Request) {
 			}
 		} else {
 			newEnvironments[envIndex].RunningIp = ""
-			newEnvironments[envIndex].Licensed = true
-			newEnvironments[envIndex].DataLake.Enabled = true
+			newEnvironments[envIndex].Licensed = false
+			newEnvironments[envIndex].DataLake.Enabled = false
 		}
 	}
 
