@@ -1,5 +1,4 @@
-module github.com/mortezamirkar/shuffle-shared.git
-
+module github.com/mortezamirkar/shuffle-shared
 go 1.22.0
 
 toolchain go1.22.2
