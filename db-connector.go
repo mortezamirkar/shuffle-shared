@@ -5994,7 +5994,7 @@ func GetEnvironments(ctx context.Context, orgId string) ([]Environment, error) {
 		if environments[envIndex].Type == "onprem" {
 			if env.Checkin > 0 && timenow-env.Checkin > 90 {
 				environments[envIndex].RunningIp = ""
-				environments[envIndex].Licensed = false
+				environments[envIndex].Licensed = true
 			}
 		}
 	}

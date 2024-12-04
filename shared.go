@@ -3307,7 +3307,7 @@ func HandleGetEnvironments(resp http.ResponseWriter, request *http.Request) {
 				// Check if timestamp is within the last 60 seconds. If it is, overwrite newEnvironments
 				if newEnv.Timestamp > 0 && timenow-newEnv.Timestamp > 60 {
 					newEnvironments[envIndex].RunningIp = ""
-					newEnvironments[envIndex].Licensed = false
+					newEnvironments[envIndex].Licensed = true
 					newEnvironments[envIndex].DataLake.Enabled = false
 				} else {
 					newEnvironments[envIndex].DataLake = newEnv.DataLake
@@ -3317,8 +3317,8 @@ func HandleGetEnvironments(resp http.ResponseWriter, request *http.Request) {
 			}
 		} else {
 			newEnvironments[envIndex].RunningIp = ""
-			newEnvironments[envIndex].Licensed = false
-			newEnvironments[envIndex].DataLake.Enabled = false
+			newEnvironments[envIndex].Licensed = true
+			newEnvironments[envIndex].DataLake.Enabled = true
 		}
 	}
 
@@ -28542,7 +28542,7 @@ func IsLicensed(ctx context.Context, org Org) bool {
 	}
 
 	if len(org.SubscriptionUserId) == 0 {
-		return false
+		return true
 	}
 
 	//if len(org.Subscriptions) > 0 {
@@ -28552,7 +28552,7 @@ func IsLicensed(ctx context.Context, org Org) bool {
 	environments, err := GetEnvironments(ctx, org.Id)
 	if err != nil {
 		log.Printf("[ERROR] Failed getting environments for org %s: %s", org.Id, err)
-		return false
+		return true
 	}
 
 	for _, env := range environments {
@@ -28565,7 +28565,7 @@ func IsLicensed(ctx context.Context, org Org) bool {
 		}
 	}
 
-	return false
+	return true
 }
 
 // Generates a standard destination workflow that uses:

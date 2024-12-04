@@ -1,4 +1,4 @@
-module github.com/shuffle/shuffle-shared
+module github.com/mortezamirkar/shuffle-shared.git
 
 go 1.22.0
 
